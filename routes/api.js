@@ -126,6 +126,7 @@ module.exports = function (app) {
           res.send('missing fields')
         }
       })
+
       // Get newest Threads.
       .get(async function (req, res) {
         let board = req.params.board;
@@ -145,6 +146,7 @@ module.exports = function (app) {
           res.send('board not found')
         }
       })
+
       // Report Thread.
       .put(async function (req, res) {
         let board = req.params.board;
@@ -166,6 +168,7 @@ module.exports = function (app) {
           res.send('missing fields')
         }
       })
+
       // Delete Thread.
       .delete(async function (req, res) {
         let board = req.params.board;
@@ -200,6 +203,8 @@ module.exports = function (app) {
           res.send('board not found')
         }
       });
+
+
     
   app.route('/api/replies/:board/')
       // Create new Reply.
@@ -232,6 +237,7 @@ module.exports = function (app) {
           res.send('missing fields')
         }
       })
+
       // Get Thread.
       .get(async function (req, res) {
         let board = req.params.board;
@@ -253,6 +259,7 @@ module.exports = function (app) {
           res.send('thread not found on board')
         }
       })
+
       // Report Reply.
       .put(async function (req, res) {
         let board = req.params.board;
@@ -275,6 +282,7 @@ module.exports = function (app) {
           res.send('missing fields')
         }
       })
+
       // Delete Reply.
       .delete(async function (req, res) {
         let board = req.params.board;
@@ -307,7 +315,7 @@ module.exports = function (app) {
         else {
           res.send('board not found')
         }
-      })
+      });
 
 
   app.get('/drop', function(req, res) {
