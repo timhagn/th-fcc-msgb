@@ -15,7 +15,7 @@ const bcrypt = require('bcrypt');
 
 chai.use(chaiHttp);
 
-let preSavedThreadId;
+let preSavedThreadId, preSavedReplyId;
 
 suite('Functional Tests', function() {
 
@@ -77,13 +77,41 @@ suite('Functional Tests', function() {
             });
       });
     });
-    
-    suite('DELETE', function() {
-      
-    });
-    
+
     suite('PUT', function() {
-      
+      test('Report Thread with incorrect thread id', function(done) {
+        chai.request(server)
+            .put('/api/threads/general')
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'missing fields');
+              done();
+            });
+      });
+      test('Report Thread with incorrect thread id', function(done) {
+        chai.request(server)
+            .put('/api/threads/general')
+            .send({
+              thread_id: '123',
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'thread not found');
+              done();
+            });
+      });
+      test('Report Thread', function(done) {
+        chai.request(server)
+            .put('/api/threads/general')
+            .send({
+              thread_id: preSavedThreadId,
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'success');
+              done();
+            });
+      });
     });
     
 
@@ -133,7 +161,6 @@ suite('Functional Tests', function() {
             })
             .end(function(err, res){
               assert.equal(res.status, 200);
-              console.log(res.text);
               assert.equal(res.text, 'thread not found');
               done();
             });
@@ -160,15 +187,183 @@ suite('Functional Tests', function() {
             });
       });
     });
-    
+
     suite('PUT', function() {
-      
+      test('Report Reply with incorrect missing fields', function(done) {
+        chai.request(server)
+            .get('/api/threads/general')
+            .then(function(res){
+              preSavedReplyId = res.body[0].replies[0]._id;
+              chai.request(server)
+                  .put('/api/replies/general/')
+                  .send({
+                    reply_id: '123'
+                  })
+                  .end(function(err, res){
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, 'missing fields');
+                    done();
+                  });
+            });
+      });
+      test('Report Reply with incorrect reply_id', function(done) {
+        chai.request(server)
+            .get('/api/threads/general')
+            .then(function(res){
+              preSavedReplyId = res.body[0].replies[0]._id;
+              chai.request(server)
+                  .put('/api/replies/general/')
+                  .send({
+                    thread_id: preSavedThreadId,
+                    reply_id: '123'
+                  })
+                  .end(function(err, res){
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, 'thread or reply not found');
+                    done();
+                  });
+            });
+      });
+      test('Report Reply', function(done) {
+        chai.request(server)
+            .get('/api/threads/general')
+            .then(function(res){
+              preSavedReplyId = res.body[0].replies[0]._id;
+              chai.request(server)
+                  .put('/api/replies/general/')
+                  .send({
+                    thread_id: preSavedThreadId,
+                    reply_id: preSavedReplyId
+                  })
+                  .end(function(err, res){
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, 'success');
+                    done();
+                  });
+            });
+      });
     });
-    
+
     suite('DELETE', function() {
-      
+      test('Delete reply with missing fields', function(done) {
+          chai.request(server)
+              .delete('/api/replies/general/')
+              .send({
+                thread_id: preSavedThreadId,
+              })
+              .end(function(err, res){
+                assert.equal(res.status, 200);
+                assert.equal(res.text, 'missing fields');
+                done();
+              });
+      });
+
+      test('Try to delete reply on nonexistent thread', function(done) {
+        chai.request(server)
+            .delete('/api/replies/general/')
+            .send({
+              thread_id: 'notexistent',
+              reply_id: preSavedReplyId,
+              delete_password: '123'
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'thread not found');
+              done();
+            });
+      });
+
+      test('Delete reply with incorrect password', function(done) {
+        chai.request(server)
+            .delete('/api/replies/general/')
+            .send({
+              thread_id: preSavedThreadId,
+              reply_id: preSavedReplyId,
+              delete_password: '123'
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'incorrect password');
+              done();
+            });
+      });
+
+      test('Delete reply with correct password', function(done) {
+        chai.request(server)
+            .delete('/api/replies/general/')
+            .send({
+              thread_id: preSavedThreadId,
+              reply_id: preSavedReplyId,
+              delete_password: 'password'
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'success');
+              done();
+            });
+      });
     });
     
+  });
+
+  suite('API ROUTING FOR /api/threads/:board deletion', function() {
+
+    suite('DELETE', function() {
+      test('Delete thread with missing fields', function(done) {
+        chai.request(server)
+            .delete('/api/threads/general')
+            .send({
+              thread_id: preSavedThreadId,
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'missing fields');
+              done();
+            });
+      });
+
+      test('Try to delete nonexistent thread', function(done) {
+        chai.request(server)
+            .delete('/api/threads/general')
+            .send({
+              thread_id: 'notexistent',
+              delete_password: '123'
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'thread not found');
+              done();
+            });
+      });
+
+      test('Delete thread with incorrect password', function(done) {
+        chai.request(server)
+            .delete('/api/threads/general')
+            .send({
+              thread_id: preSavedThreadId,
+              delete_password: '123'
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'incorrect password');
+              done();
+            });
+      });
+
+      test('Delete thread with correct password', function(done) {
+        chai.request(server)
+            .delete('/api/threads/general')
+            .send({
+              thread_id: preSavedThreadId,
+              delete_password: 'password'
+            })
+            .end(function(err, res){
+              assert.equal(res.status, 200);
+              assert.equal(res.text, 'success');
+              done();
+            });
+      });
+    });
   });
 
 });

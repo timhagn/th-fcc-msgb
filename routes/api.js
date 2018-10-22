@@ -70,6 +70,16 @@ module.exports = function (app) {
     });
   }
 
+  // Async function to get complete Thread by thread_id.
+  function getCompleteThreadById(thread_id) {
+    return new Promise((resolve, reject) => {
+      Thread.findById(
+          thread_id,
+          (err, thread) => err ? reject(null) : resolve(thread)
+      );
+    });
+  }
+
   // Async function to get newest 10 Threads on Board.
   function getNewestThreads(board) {
     return new Promise((resolve, reject) => {
@@ -84,8 +94,8 @@ module.exports = function (app) {
   // Async function to delete Thread by thread_id.
   function deleteThreadById(thread_id) {
     return new Promise((resolve, reject) => {
-      Issue.findOneAndDelete(
-          { thread_id: thread_id },
+      Thread.findByIdAndDelete(
+          thread_id,
           (err, thread) => err ? reject(null) : resolve(thread)
       );
     });
@@ -129,6 +139,61 @@ module.exports = function (app) {
           }
           else {
             res.json({});
+          }
+        }
+        else {
+          res.send('board not found')
+        }
+      })
+      // Report Thread.
+      .put(async function (req, res) {
+        let board = req.params.board;
+        let thread_id = req.body.thread_id;
+        if (board && thread_id) {
+          let thread = await getCompleteThreadById(thread_id);
+          if (thread) {
+            thread.reported = true;
+            thread.save((err, data) => {
+              err ? res.send('failure reporting thread') :
+                  res.send('success');
+            });
+          }
+          else {
+            res.send('thread not found');
+          }
+        }
+        else {
+          res.send('missing fields')
+        }
+      })
+      // Delete Thread.
+      .delete(async function (req, res) {
+        let board = req.params.board;
+        if (board) {
+          let thread_id = req.body.thread_id;
+          let thread_delete_password = req.body.delete_password;
+          if (thread_id && thread_delete_password) {
+            let thread = await getCompleteThreadById(thread_id);
+            if (thread) {
+              if (bcrypt.compareSync(thread_delete_password, thread.delete_password)) {
+                let deletedThread = deleteThreadById(thread_id);
+                if (deletedThread) {
+                  res.send('success');
+                }
+                else {
+                  res.send('failure deleting thread')
+                }
+              }
+              else {
+                res.send('incorrect password')
+              }
+            }
+            else {
+              res.send('thread not found')
+            }
+          }
+          else {
+            res.send('missing fields')
           }
         }
         else {
@@ -187,7 +252,62 @@ module.exports = function (app) {
         else {
           res.send('thread not found on board')
         }
-      });
+      })
+      // Report Reply.
+      .put(async function (req, res) {
+        let board = req.params.board;
+        let thread_id = req.body.thread_id;
+        let reply_id = req.body.reply_id;
+        if (board && thread_id && reply_id) {
+          let thread = await getCompleteThreadById(thread_id);
+          if (thread && thread.replies.id(reply_id)) {
+            thread.replies.id(reply_id).reported = true;
+            thread.save((err, data) => {
+              err ? res.send('failure reporting reply') :
+                    res.send('success');
+            });
+          }
+          else {
+            res.send('thread or reply not found');
+          }
+        }
+        else {
+          res.send('missing fields')
+        }
+      })
+      // Delete Reply.
+      .delete(async function (req, res) {
+        let board = req.params.board;
+        if (board) {
+          let thread_id = req.body.thread_id;
+          let reply_id = req.body.reply_id;
+          let reply_delete_password = req.body.delete_password;
+          if (thread_id && reply_id && reply_delete_password) {
+            let thread = await getCompleteThreadById(thread_id);
+            if (thread) {
+              if (bcrypt.compareSync(reply_delete_password, thread.replies.id(reply_id).delete_password)) {
+                thread.replies.id(reply_id).text = '[deleted]';
+                thread.save((err, data) => {
+                  err ? res.send('failure deleting reply') :
+                        res.send('success');
+                });
+              }
+              else {
+                res.send('incorrect password');
+              }
+            }
+            else {
+              res.send('thread not found')
+            }
+          }
+          else {
+            res.send('missing fields')
+          }
+        }
+        else {
+          res.send('board not found')
+        }
+      })
 
 
   app.get('/drop', function(req, res) {
