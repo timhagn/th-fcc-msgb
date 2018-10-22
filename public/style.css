@@ -1,10 +1,22 @@
+@import url(https://fonts.googleapis.com/css?family=Rubik:400,500);
 * {
   margin: 0px;
   padding: 0px;
 }
 
 body {
+  font-family: 'Rubik', Verdana, sans-serif;
   padding: 10px;
+  background-color: black;
+  color: white;
+}
+
+a {
+  color: #ccc;
+}
+
+a:visited {
+  color: #666;
 }
 
 .replies {
@@ -12,7 +24,7 @@ body {
 }
 
 .reply {
-  border: 1px dotted black;
+  border: 1px dotted white;
   margin: 5px;
   padding: 5px;
 }
@@ -22,7 +34,7 @@ body {
 }
 
 .thread {
-  border: 2px solid black;
+  border: 2px solid white;
   padding: 5px;
   margin-bottom: 5px;
 }

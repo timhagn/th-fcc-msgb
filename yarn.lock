@@ -263,6 +263,11 @@ chai-http@^4.2.0:
     qs "^6.5.1"
     superagent "^3.7.0"
 
+chai-url@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/chai-url/-/chai-url-1.0.4.tgz#827e0fd7835c848b8ab8e2ce1d65d40521e62026"
+  integrity sha1-gn4P14NchIuKuOLOHWXUBSHmICY=
+
 chai@^3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/chai/-/chai-3.5.0.tgz#4d02637b067fe958bdbfdd3a40ec56fef7373247"
